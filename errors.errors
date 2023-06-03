@@ -1,4 +1,4 @@
-#novaVersion v0.0.0-beta
+#novaVersion 2023.06.03.19.46-snapshot
 commandError:
     >> コマンドエラー
     UnknounCommand:

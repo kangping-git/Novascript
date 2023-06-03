@@ -37,6 +37,6 @@ function error(errorID, ...datas) {
         return value;
     })
         .join(""));
-    process.exit();
+    process.exit(1);
 }
 exports.error = error;

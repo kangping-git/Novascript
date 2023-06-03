@@ -5,7 +5,7 @@ import * as util from "./util";
 let debugMode: boolean = false;
 
 interface token {
-    type: "var" | "string" | "parentheses" | "reline";
+    type: "var" | "string" | "parentheses" | "reline" | "number";
     value: string;
     line: number;
     char: number;
@@ -67,7 +67,7 @@ function lexer(code: string, filePath: string): token[] {
     }
     let tokens: token[] = [];
     let $token: string[] = code.split(
-        /(\r\n|\r|\n|"[^"]*"|[a-zA-Z_][a-zA-Z0-9_]*|\(|\)|;)/
+        /(\r\n|\r|\n|"[^"]*"|[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\.[0-9]+|[0-9]+|\(|\)|;)/
     );
     let line: number = 0;
     let char: number = 0;
@@ -118,6 +118,15 @@ function lexer(code: string, filePath: string): token[] {
             .c(["(", ")"], (val: string) => {
                 add({
                     type: "parentheses",
+                    value: i,
+                    line: line,
+                    char: char,
+                    filePath: filePath,
+                });
+            })
+            .c(/^[0-9]+\.[0-9]+|[0-9]+$/, (val: string) => {
+                add({
+                    type: "number",
                     value: i,
                     line: line,
                     char: char,
@@ -206,6 +215,14 @@ function $parser(tokens: token[], mustNewLine: boolean = false): $parserReturn {
             returnData.ast.op = "const";
             returnData.ast.right = firstToken.value.slice(1, -1);
             returnData.ast.left = "string";
+            returnData.ast.line2 = firstToken.line;
+            returnData.ast.char2 = firstToken.char + firstToken.value.length;
+            tokens = tokens.slice(1);
+            break;
+        case "number":
+            returnData.ast.op = "const";
+            returnData.ast.right = firstToken.value;
+            returnData.ast.left = "number";
             returnData.ast.line2 = firstToken.line;
             returnData.ast.char2 = firstToken.char + firstToken.value.length;
             tokens = tokens.slice(1);

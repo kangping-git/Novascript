@@ -14,7 +14,7 @@ function error(errorID: NovaData.errorMessageKeys, ...datas: any) {
             })
             .join("")
     );
-    process.exit();
+    process.exit(1);
 }
 
 export { error };

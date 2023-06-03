@@ -8,7 +8,7 @@ type errorMessage = {
         | "parserError$NoReLine"]: string;
 };
 
-const version: string = "v0.0.0-beta";
+const version: string = "2023.06.03.19.46-snapshot";
 const errorMessages: errorMessage = {
     commandError$UnknounCommand: 
         "コマンドエラー:知らないコマンド「%s」です",

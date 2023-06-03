@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorMessages = exports.version = void 0;
-const version = "v0.0.0-beta";
+const version = "2023.06.03.19.46-snapshot";
 exports.version = version;
 const errorMessages = {
     commandError$UnknounCommand: "コマンドエラー:知らないコマンド「%s」です",
