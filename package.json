@@ -1,0 +1,25 @@
+{
+    "name": "nova-script",
+    "version": "v0.0.0-beta",
+    "keywords": [
+        "language",
+        "kangping"
+    ],
+    "description": "Novascript is Kangping's programming language",
+    "bin": {
+        "nova": "./bin/bin.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kangping-git/Novascript.git"
+    },
+    "author": "kangping",
+    "license": "MIT",
+    "devDependencies": {
+        "@types/node": "^18.15.9",
+        "electron": "^24.0.0"
+    },
+    "dependencies": {
+        "@webgpu/types": "^0.1.32"
+    }
+}    
