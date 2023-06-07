@@ -1,0 +1,50 @@
+# チュートリアル
+
+@SetTitle Tutorials
+
+'''CanHide 目次
+(1.HelloWorld)[#HelloWorld]
+(2.演算)[#1+1]
+'''
+
+@SetLabel HelloWorld
+## HelloWorld
+HelloWorldはプログラミング言語を始めるときに一番最初に作るものです(個人の感想です)
+このコードはNovaScriptでの実装例です
+```novascript
+print("HelloWorld");
+```
+これは単純にHelloWorldと表示されるだけのプログラムです
+
+'''CanHide このコードに出てくる構文の紹介
+!### 文字列構文
+文字列は
+```novascript
+"<文字列>"
+```
+のように表すことができます。
+!### 関数構文
+関数は
+```novascript
+function(...args)
+```
+のように表すことができます。このサンプルではprint関数を使用しています。この関数は文字列を出力するという関数です。
+'''
+
+@SetLabel 1+1
+## 1+1=?
+1+1は誰でもわかると言われている計算です(証明はバチクソ難しいです)。
+このコードはNovaScriptでの実装例です
+```novascript
+print("1+1=",1+1);
+```
+このコードを実行すると「1+1=2」と表示されるはずです。
+'''CanHide このコードに出てくる構文の紹介
+!### 演算系
+Novascriptでは演算を
+```novascript
+値 <+|-|*|/|**> 値
+```
+のようにあらわすことができます。
++は加算、-は減算、*は乗算、/は除算、そして**は累乗を表します。
+'''
