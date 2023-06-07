@@ -1,11 +1,19 @@
 import * as fs from "fs";
 import { s } from "./switchPlus";
 import * as util from "./util";
+import * as NovaData from "./data";
 
 let debugMode: boolean = false;
 
 interface token {
-    type: "var" | "string" | "parentheses" | "reline" | "number";
+    type:
+        | "var"
+        | "string"
+        | "parentheses"
+        | "reline"
+        | "number"
+        | "spliter"
+        | "calc";
     value: string;
     line: number;
     char: number;
@@ -13,7 +21,7 @@ interface token {
 }
 
 interface ast {
-    op: "" | "const" | "get" | "runFunction";
+    op: "" | "const" | "get" | "runFunction" | "calc";
     left: string;
     right: any;
     line1: number;
@@ -60,15 +68,19 @@ function runner(filePath: string, debugFlg: boolean) {
         );
     }
 }
+function codeSpliter(code: string) {
+    let $token: string[] = code.split(
+        /(\r\n|\r|\n|\+|-|\*\*|\*|\/|"[^"]*"|,|[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\.[0-9]+|[0-9]+|\(|\)|;)/
+    );
+    return $token;
+}
 
 function lexer(code: string, filePath: string): token[] {
     function add(token: token) {
         tokens.push(token);
     }
     let tokens: token[] = [];
-    let $token: string[] = code.split(
-        /(\r\n|\r|\n|"[^"]*"|[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\.[0-9]+|[0-9]+|\(|\)|;)/
-    );
+    let $token: string[] = codeSpliter(code);
     let line: number = 0;
     let char: number = 0;
     for (let i of $token) {
@@ -124,9 +136,27 @@ function lexer(code: string, filePath: string): token[] {
                     filePath: filePath,
                 });
             })
+            .c(["+", "-", "*", "/", "**"], (val: string) => {
+                add({
+                    type: "calc",
+                    value: i,
+                    line: line,
+                    char: char,
+                    filePath: filePath,
+                });
+            })
             .c(/^[0-9]+\.[0-9]+|[0-9]+$/, (val: string) => {
                 add({
                     type: "number",
+                    value: i,
+                    line: line,
+                    char: char,
+                    filePath: filePath,
+                });
+            })
+            .c(",", (val: string) => {
+                add({
+                    type: "spliter",
                     value: i,
                     line: line,
                     char: char,
@@ -149,7 +179,27 @@ function lexer(code: string, filePath: string): token[] {
     return tokens;
 }
 
-function $parser(tokens: token[], mustNewLine: boolean = false): $parserReturn {
+function $parser(
+    tokens: token[],
+    mustNewLine: boolean = false,
+    NoCalc: boolean = false
+): $parserReturn {
+    function error(msg: NovaData.errorMessageKeys) {
+        const code: string = fs.readFileSync(firstToken.filePath, "utf-8");
+        util.error(
+            msg,
+            firstToken.filePath,
+            firstToken.line + 1,
+            firstToken.char + 1,
+            firstToken.line +
+                1 +
+                " | " +
+                code.split(/\r\n|\r|\n/)[firstToken.line],
+            " ".repeat(
+                String(firstToken.line + 1).length + 3 + firstToken.char
+            ) + "~".repeat(firstToken.value.length)
+        );
+    }
     const _firstIndex = tokens.findIndex((t) => t.type != "reline");
     tokens = tokens.slice(_firstIndex);
     const firstToken: token = tokens[0];
@@ -193,6 +243,12 @@ function $parser(tokens: token[], mustNewLine: boolean = false): $parserReturn {
                         let p = $parser(_tokens);
                         asts.push(p.ast);
                         _tokens = p.tokens;
+                        if (_tokens.length > 0) {
+                            if (_tokens[0].type != "spliter") {
+                                error("parserError$NoSpliter");
+                            }
+                        }
+                        _tokens = _tokens.slice(1);
                     }
                     tokens = tokens.slice(i + 1);
                     returnData.ast.left = firstToken.value;
@@ -228,6 +284,28 @@ function $parser(tokens: token[], mustNewLine: boolean = false): $parserReturn {
             tokens = tokens.slice(1);
             break;
     }
+    if (!NoCalc) {
+        if (tokens.length > 0) {
+            if (tokens[0].type == "calc") {
+                returnData.ast.op = "calc";
+                returnData.ast.right = [{ ...returnData.ast }, tokens[0].value];
+                tokens = tokens.slice(1);
+                while (tokens.length > 0) {
+                    let r = $parser(tokens, false, true);
+                    tokens = r.tokens;
+                    returnData.ast.right.push(r);
+                    if (tokens.length > 0) {
+                        if (tokens[0].type != "calc") {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                    returnData.ast.right.push(tokens[0].value);
+                }
+            }
+        }
+    }
     if (returnData.ast.op == "") {
         const code: string = fs.readFileSync(firstToken.filePath, "utf-8");
         util.error(
@@ -247,23 +325,7 @@ function $parser(tokens: token[], mustNewLine: boolean = false): $parserReturn {
     if (mustNewLine) {
         if (tokens.length != 0) {
             if (tokens[0].type != "reline") {
-                const code: string = fs.readFileSync(
-                    firstToken.filePath,
-                    "utf-8"
-                );
-                util.error(
-                    "parserError$NoReLine",
-                    tokens[0].filePath,
-                    tokens[0].line + 1,
-                    tokens[0].char + 1,
-                    tokens[0].line +
-                        1 +
-                        " | " +
-                        code.split(/\r\n|\r|\n/)[tokens[0].line],
-                    " ".repeat(
-                        String(tokens[0].line + 1).length + 3 + tokens[0].char
-                    ) + "~".repeat(tokens[0].value.length)
-                );
+                error("parserError$CantFindToken");
             } else {
                 tokens.shift();
             }
@@ -284,4 +346,4 @@ function parser(tokens: token[], mustNewLine: boolean = true): ast[] {
     return returnAsts;
 }
 
-export { runner };
+export { runner, parser, lexer, codeSpliter };

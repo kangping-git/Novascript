@@ -138,3 +138,5 @@ export { version, errorMessages, errorMessageKeys };
     });
 }
 change();
+
+childprocess.exec("node ./docs/autoBuild.js", (error, stdout, stderr) => {});

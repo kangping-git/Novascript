@@ -1,4 +1,4 @@
-#novaVersion 2023.06.03.19.46-snapshot
+#novaVersion 2023.06.07.17.44-snapshot
 commandError:
     >> コマンドエラー
     UnknounCommand:
@@ -17,3 +17,5 @@ parserError:
         >>> 不明な構文が使用されています;%s:%s:%s;%s;%s
     NoReLine:
         >>> 改行やセミコロンが抜けています;%s:%s:%s;%s;%s
+    NoSpliter:
+        >>> 関数内の引数でコンマが抜けています;%s:%s:%s;%s;%s

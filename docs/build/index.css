@@ -1,0 +1,97 @@
+html,
+body {
+    margin: 50px;
+    background-color: rgb(19, 19, 19);
+    color: white;
+}
+
+a {
+    color: white;
+}
+
+pre {
+    font-family: "Courier New", Courier, monospace;
+    position: relative;
+    counter-reset: line;
+    background-color: rgb(68, 68, 68);
+    padding: 20px;
+    border-radius: 10px;
+    padding-left: 50px;
+}
+
+span.line::before {
+    counter-increment: line;
+    content: counter(line);
+    padding-right: 10px;
+    margin-right: 5px;
+    border-right: solid 1px gray;
+}
+
+span.var {
+    color: rgb(157, 255, 242);
+}
+
+span.initVar {
+    color: rgb(68, 118, 255);
+}
+
+span.func {
+    color: rgb(253, 241, 70);
+}
+
+span.func.for {
+    color: rgb(255, 0, 191);
+}
+
+span.string {
+    color: rgb(255, 153, 0);
+}
+span.number {
+    color: rgb(188, 255, 143);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    padding: 10px;
+}
+
+.focus {
+    background-color: rgba(100, 212, 100, 0.5);
+}
+
+.footer {
+    text-align: center;
+}
+
+.block {
+    border: 1px solid rgb(167, 167, 167);
+    padding: 20px;
+    margin-bottom: 50px;
+}
+
+input[type="checkbox"] {
+    display: none;
+}
+input[type="checkbox"] + label::before {
+    content: "▶";
+    color: white;
+}
+input[type="checkbox"]:checked + label::before {
+    content: "▼";
+    color: white;
+}
+input[type="checkbox"] + label + div {
+    display: none;
+}
+input[type="checkbox"]:checked + label + div {
+    display: block;
+}
+
+.noMargin {
+    margin: 0;
+    padding: 0;
+}

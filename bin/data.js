@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorMessages = exports.version = void 0;
-const version = "2023.06.03.19.46-snapshot";
+const version = "2023.06.07.17.44-snapshot";
 exports.version = version;
 const errorMessages = {
     commandError$UnknounCommand: "コマンドエラー:知らないコマンド「%s」です",
@@ -10,5 +10,6 @@ const errorMessages = {
     runCommandSyntaxError$NotFile: "コマンド構文エラー:ファイル以外は実行できません",
     parserError$CantFindToken: "構文エラー:不明な構文が使用されています\n%s:%s:%s\n%s\n%s",
     parserError$NoReLine: "構文エラー:改行やセミコロンが抜けています\n%s:%s:%s\n%s\n%s",
+    parserError$NoSpliter: "構文エラー:関数内の引数でコンマが抜けています\n%s:%s:%s\n%s\n%s",
 };
 exports.errorMessages = errorMessages;

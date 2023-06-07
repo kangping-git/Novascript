@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runner = void 0;
+exports.codeSpliter = exports.lexer = exports.parser = exports.runner = void 0;
 const fs = __importStar(require("fs"));
 const switchPlus_1 = require("./switchPlus");
 const util = __importStar(require("./util"));
@@ -52,12 +52,17 @@ function runner(filePath, debugFlg) {
     }
 }
 exports.runner = runner;
+function codeSpliter(code) {
+    let $token = code.split(/(\r\n|\r|\n|\+|-|\*\*|\*|\/|"[^"]*"|,|[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\.[0-9]+|[0-9]+|\(|\)|;)/);
+    return $token;
+}
+exports.codeSpliter = codeSpliter;
 function lexer(code, filePath) {
     function add(token) {
         tokens.push(token);
     }
     let tokens = [];
-    let $token = code.split(/(\r\n|\r|\n|"[^"]*"|[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\.[0-9]+|[0-9]+|\(|\)|;)/);
+    let $token = codeSpliter(code);
     let line = 0;
     let char = 0;
     for (let i of $token) {
@@ -113,9 +118,27 @@ function lexer(code, filePath) {
                 filePath: filePath,
             });
         })
+            .c(["+", "-", "*", "/", "**"], (val) => {
+            add({
+                type: "calc",
+                value: i,
+                line: line,
+                char: char,
+                filePath: filePath,
+            });
+        })
             .c(/^[0-9]+\.[0-9]+|[0-9]+$/, (val) => {
             add({
                 type: "number",
+                value: i,
+                line: line,
+                char: char,
+                filePath: filePath,
+            });
+        })
+            .c(",", (val) => {
+            add({
+                type: "spliter",
                 value: i,
                 line: line,
                 char: char,
@@ -130,7 +153,15 @@ function lexer(code, filePath) {
     }
     return tokens;
 }
-function $parser(tokens, mustNewLine = false) {
+exports.lexer = lexer;
+function $parser(tokens, mustNewLine = false, NoCalc = false) {
+    function error(msg) {
+        const code = fs.readFileSync(firstToken.filePath, "utf-8");
+        util.error(msg, firstToken.filePath, firstToken.line + 1, firstToken.char + 1, firstToken.line +
+            1 +
+            " | " +
+            code.split(/\r\n|\r|\n/)[firstToken.line], " ".repeat(String(firstToken.line + 1).length + 3 + firstToken.char) + "~".repeat(firstToken.value.length));
+    }
     const _firstIndex = tokens.findIndex((t) => t.type != "reline");
     tokens = tokens.slice(_firstIndex);
     const firstToken = tokens[0];
@@ -175,6 +206,12 @@ function $parser(tokens, mustNewLine = false) {
                         let p = $parser(_tokens);
                         asts.push(p.ast);
                         _tokens = p.tokens;
+                        if (_tokens.length > 0) {
+                            if (_tokens[0].type != "spliter") {
+                                error("parserError$NoSpliter");
+                            }
+                        }
+                        _tokens = _tokens.slice(1);
                     }
                     tokens = tokens.slice(i + 1);
                     returnData.ast.left = firstToken.value;
@@ -210,6 +247,29 @@ function $parser(tokens, mustNewLine = false) {
             tokens = tokens.slice(1);
             break;
     }
+    if (!NoCalc) {
+        if (tokens.length > 0) {
+            if (tokens[0].type == "calc") {
+                returnData.ast.op = "calc";
+                returnData.ast.right = [Object.assign({}, returnData.ast), tokens[0].value];
+                tokens = tokens.slice(1);
+                while (tokens.length > 0) {
+                    let r = $parser(tokens, false, true);
+                    tokens = r.tokens;
+                    returnData.ast.right.push(r);
+                    if (tokens.length > 0) {
+                        if (tokens[0].type != "calc") {
+                            break;
+                        }
+                    }
+                    else {
+                        break;
+                    }
+                    returnData.ast.right.push(tokens[0].value);
+                }
+            }
+        }
+    }
     if (returnData.ast.op == "") {
         const code = fs.readFileSync(firstToken.filePath, "utf-8");
         util.error("parserError$CantFindToken", firstToken.filePath, firstToken.line + 1, firstToken.char + 1, firstToken.line +
@@ -220,11 +280,7 @@ function $parser(tokens, mustNewLine = false) {
     if (mustNewLine) {
         if (tokens.length != 0) {
             if (tokens[0].type != "reline") {
-                const code = fs.readFileSync(firstToken.filePath, "utf-8");
-                util.error("parserError$NoReLine", tokens[0].filePath, tokens[0].line + 1, tokens[0].char + 1, tokens[0].line +
-                    1 +
-                    " | " +
-                    code.split(/\r\n|\r|\n/)[tokens[0].line], " ".repeat(String(tokens[0].line + 1).length + 3 + tokens[0].char) + "~".repeat(tokens[0].value.length));
+                error("parserError$CantFindToken");
             }
             else {
                 tokens.shift();
@@ -244,3 +300,4 @@ function parser(tokens, mustNewLine = true) {
     }
     return returnAsts;
 }
+exports.parser = parser;
