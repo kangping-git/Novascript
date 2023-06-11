@@ -1,4 +1,0 @@
-index
-examples
-versions
-tutorials/index

@@ -1,234 +1,144 @@
 const fs = require("fs");
 const path = require("path");
-const pages = fs
-    .readFileSync(path.join(__dirname, "./pages.txt"), "utf-8")
-    .split(/\r\n|\n|\r/);
-const defaultFooter = fs.readFileSync(
-    path.join(__dirname, "./footer.html"),
-    "utf-8"
-);
-const d = require("../bin/runner");
+const crypto = require("crypto");
+let pageConfig = fs.readFileSync(path.join(__dirname, "./page.html"), "utf8");
 
+function calculateMD5(input) {
+    const hash = crypto.createHash("md5");
+    hash.update(input);
+    return hash.digest("hex");
+}
+
+function build(page, FilePath) {
+    pageConfig = fs.readFileSync(path.join(__dirname, "./page.html"), "utf8");
+    let r = "";
+    if (FilePath.split(".").slice(-1)[0] == "page") {
+        r = buildPage(page, FilePath);
+    } else if (FilePath.split(".").slice(-1)[0] == "blog") {
+        r = buildBlog(page, FilePath);
+    } else if (FilePath.split(".").slice(-1)[0] == "tutorial") {
+        r = buildTutorial(page, FilePath);
+    }
+    return r;
+}
 function buildPage(page, FilePath) {
-    let pageLines = page.split(/\r\n|\n|\r/);
+    let splitPage = page.split("\n");
+    let r = "";
     let title = "";
-    let lang = "";
-    let block = false;
-    let label = "";
-    for (let i in pageLines) {
-        if (pageLines[i].slice(0, 3) == "```") {
-            if (lang) {
-                lang = "";
-                pageLines[i] = "</code></pre>";
+    let codeBlock = false;
+    let list = false;
+    for (let i = 0; i < splitPage.length; ++i) {
+        let line = splitPage[i].trim();
+        let command = line.split(" ")[0];
+        let args = line.split(" ").slice(1);
+        let content = args.join(" ");
+        if (line == "```") {
+            codeBlock = !codeBlock;
+            if (codeBlock) {
+                r += "<pre><code>";
             } else {
-                lang = pageLines[i].slice(3);
-                pageLines[i] = "<code><pre>";
-                if (lang == "") {
-                    lang = "plane";
-                }
+                r += "</code></pre>";
             }
             continue;
         }
-        if (pageLines[i].slice(0, 3) == "'''") {
-            block = !block;
-            let l = pageLines[i].slice(3).split(" ");
-            if (l[0] == "CanHide") {
-                if (block) {
-                    pageLines[i] =
-                        "<br><input type='checkbox' id='check_" +
-                        i +
-                        "'><label for='check_" +
-                        i +
-                        "'>" +
-                        l.slice(1).join(" ") +
-                        "</label><div class='block'>";
+        if (codeBlock) {
+            r += `<div class="line">${splitPage[i]}</div>`;
+            continue;
+        }
+        if (command != "-" && list) {
+            r += "</ul>";
+        }
+        switch (command) {
+            case "@SetTitle":
+                title = content;
+                break;
+            case "#":
+                let id = ` id="${calculateMD5(content)}"`;
+                if (args[0].match(/^{.*}$/)) {
+                    id = ` id="${args[0].slice(1, -1)}"`;
+                    content = args.slice(1).join(" ");
+                }
+                r += `<h1${id}>${content}</h1>`;
+                break;
+            case "-":
+                if (!list) {
+                    r += `<ul><li>${content}</li>`;
                 } else {
-                    pageLines[i] = "</div>";
+                    r += `<li>${content}</li>`;
                 }
-            } else {
-                if (block) {
-                    pageLines[i] = "<div class='block'>";
-                } else {
-                    pageLines[i] = "</div>";
-                }
-            }
-            continue;
-        }
-        if (lang) {
-            if (lang == "novascript") {
-                let tokens = d.codeSpliter(pageLines[i]);
-                function isNextToken(index, token) {
-                    let i = tokens
-                        .slice(index + 1)
-                        .findIndex((t) => t[0] != " " && t);
-                    if (i >= 0) {
-                        return tokens[i + index + 1] == token;
-                    }
-                    return false;
-                }
-                pageLines[i] = "<span class='line'>";
-                for (let j in tokens) {
-                    let I = Number(j);
-                    if (tokens[I].match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) {
-                        if (tokens.length > I + 1) {
-                            if (isNextToken(I, "(")) {
-                                if (
-                                    ["for", "while", "if"].includes(tokens[I])
-                                ) {
-                                    pageLines[
-                                        i
-                                    ] += `<span class="func for">${tokens[I]}</span>`;
-                                    continue;
-                                }
-                                pageLines[
-                                    i
-                                ] += `<span class="func">${tokens[I]}</span>`;
-                                continue;
-                            }
-                        }
-                        if (tokens[I] == "else") {
-                            pageLines[
-                                i
-                            ] += `<span class="func for">${tokens[I]}</span>`;
-                            continue;
-                        }
-                        if (["let", "var", "const"].includes(tokens[I])) {
-                            pageLines[
-                                i
-                            ] += `<span class="initVar">${tokens[I]}</span>`;
-                            continue;
-                        }
-                        pageLines[i] += `<span class="var">${tokens[I]}</span>`;
-                        continue;
-                    } else if (tokens[I].match(/^"[^"]*"$/)) {
-                        pageLines[
-                            i
-                        ] += `<span class="string">${tokens[I]}</span>`;
-                        continue;
-                    } else if (tokens[I].match(/^[0-9]+\.[0-9]+|[0-9]+$/)) {
-                        pageLines[
-                            i
-                        ] += `<span class="number">${tokens[I]}</span>`;
-                        continue;
-                    }
-                    pageLines[i] += `<span>${tokens[I]}</span>`;
-                }
-            }
-            pageLines[i] += "</span>";
-            continue;
-        }
-        if (pageLines[i].slice(0, 2) == "# ") {
-            pageLines[i] = `<h1${label}>${pageLines[i].slice(2)}</h1>`;
-        } else if (pageLines[i].slice(0, 3) == "## ") {
-            pageLines[i] = `<h2${label}>${pageLines[i].slice(3)}</h2>`;
-        } else if (pageLines[i].slice(0, 4) == "### ") {
-            pageLines[i] = `<h3${label}>${pageLines[i].slice(4)}</h3>`;
-        } else if (pageLines[i].slice(0, 5) == "#### ") {
-            pageLines[i] = `<h4${label}>${pageLines[i].slice(5)}</h4>`;
-        } else if (pageLines[i].slice(0, 6) == "##### ") {
-            pageLines[i] = `<h5${label}>${pageLines[i].slice(6)}</h5>`;
-        } else if (pageLines[i].slice(0, 7) == "###### ") {
-            pageLines[i] = `<h6${label}>${pageLines[i].slice(7)}</h6>`;
-        } else if (pageLines[i].slice(0, 3) == "!# ") {
-            pageLines[i] = `<h1${label} class="noMargin">${pageLines[i].slice(
-                3
-            )}</h1>`;
-        } else if (pageLines[i].slice(0, 4) == "!## ") {
-            pageLines[i] = `<h2${label} class="noMargin">${pageLines[i].slice(
-                4
-            )}</h2>`;
-        } else if (pageLines[i].slice(0, 5) == "!### ") {
-            pageLines[i] = `<h3${label} class="noMargin">${pageLines[i].slice(
-                5
-            )}</h3>`;
-        } else if (pageLines[i].slice(0, 6) == "!#### ") {
-            pageLines[i] = `<h4${label} class="noMargin">${pageLines[i].slice(
-                6
-            )}</h4>`;
-        } else if (pageLines[i].slice(0, 7) == "!##### ") {
-            pageLines[i] = `<h5${label} class="noMargin">${pageLines[i].slice(
-                7
-            )}</h5>`;
-        } else if (pageLines[i].slice(0, 8) == "!###### ") {
-            pageLines[i] = `<h6${label} class="noMargin">${pageLines[i].slice(
-                8
-            )}</h6>`;
-        } else if (pageLines[i].slice(0, 14) == "@ContentTable ") {
-            pageLines[i] = `<ul>
-                ${pageLines[i]
-                    .slice(14)
-                    .split(" ")
-                    .map((value) => {
-                        return `<li><a href="#${value}">${value}</a></li>`;
-                    })
-                    .join("\n")}
-                </ul>`;
-        } else if (pageLines[i].slice(0, 10) == "@SetTitle ") {
-            title = pageLines[i].slice(10);
-            pageLines[i] = "";
-        }
-        label = "";
-        if (pageLines[i].slice(0, 10) == "@SetLabel ") {
-            label = ` id="${pageLines[i].slice(10)}"`;
-            pageLines[i] = "";
-        }
-        if (block) {
-            pageLines[i] += "<br>";
+                list = true;
+                break;
+            default:
+                r += line + "<br>";
         }
     }
-    let r = fs
-        .readFileSync(path.join(__dirname, "./template.html"), "utf-8")
-        .replace(/%Content%/, pageLines.join("\n"))
-        .replace(/%Title%/, title)
-        .replace(/%Footer%/, defaultFooter)
-        .split(/(\([^\)]*\)\[[^\]]*\])/)
-        .map((value, index) => {
+    r = r
+        .split(/(@\([^\)]*\)\[[^\]]*\])/)
+        .map((val, index) => {
             if (index % 2 == 1) {
-                return (
-                    "<a href='" +
-                    value.match(/\[[^\]]*\]/)[0].slice(1, -1) +
-                    "'>" +
-                    value.match(/\([^\)]*\)/)[0].slice(1, -1) +
-                    "</a>"
-                );
+                let msg = val.match(/\([^\)]*\)/)[0].slice(1, -1);
+                let url = val.match(/\[[^\)]*\]/)[0].slice(1, -1);
+                if (url[0] == "#") {
+                    return `<a href="${url}">${msg}</a>`;
+                } else {
+                    return `<a href="#${calculateMD5(url)}">${msg}</a>`;
+                }
             }
-            return value;
+            return val;
         })
         .join("")
-        .replace(/\\/g, "<br>");
-    r = r
-        .split(/(%relative [^%]+%)/g)
-        .map((value, index) => {
+        .split(/([^@#]\([^\)]*\)\[[^\]]*\])/)
+        .map((val, index) => {
             if (index % 2 == 1) {
-                console.log(
-                    path.relative(
-                        FilePath,
-                        path.join(__dirname, "./build/", value.slice(10, -1))
-                    )
-                );
-                return path.relative(
-                    FilePath,
-                    path.join(__dirname, "./build/", value.slice(10, -1))
-                );
+                let msg = val.match(/\([^\)]*\)/)[0].slice(1, -1);
+                let url = val.match(/\[[^\)]*\]/)[0].slice(1, -1);
+                return `${val[0]}<a href="${url}">${msg}</a>`;
             }
-            return value;
+            return val;
         })
         .join("");
+    return pageConfig
+        .replace("%Content%", r)
+        .replace("%Title%", title)
+        .split(/(%resource [^%]+%)/)
+        .map((val, index) => {
+            if (index % 2 == 1) {
+                return path.relative(
+                    path.dirname(FilePath),
+                    path.join(__dirname, "./build/", val.slice(10, -1))
+                );
+            }
+            return val;
+        })
+        .join("")
+        .split(/(#\([^\)]*\)\[[^\]]*\]<[0-9]+,[0-9]+>)/)
+        .map((val, index) => {
+            if (index % 2 == 1) {
+                let url = val.match(/\([^\)]*\)/)[0].slice(1, -1);
+                let alt = val.match(/\[[^\)]*\]/)[0].slice(1, -1);
+                let wh = val.match(/<[0-9]+,[0-9]+>/);
+                wh = wh[0].slice(1, -1).split(",");
+                return `<img src="${url}" alt="${alt}" width="${wh[0]}" height="${wh[1]}"/>`;
+            }
+            return val;
+        })
+        .join("")
+        .split(/(#\([^\)]*\)\[[^\]]*\])/)
+        .map((val, index) => {
+            if (index % 2 == 1) {
+                let url = val.match(/\([^\)]*\)/)[0].slice(1, -1);
+                let alt = val.match(/\[[^\)]*\]/)[0].slice(1, -1);
+                return `<img src="${url}" alt="${alt}"/>`;
+            }
+            return val;
+        })
+        .join("");
+}
+function buildTutorial(page, FilePath) {
+    return r;
+}
+function buildBlog(page, FilePath) {
     return r;
 }
 
-for (let i of pages) {
-    fs.mkdirSync(path.dirname(path.join(__dirname, "./build/", i + ".html")), {
-        recursive: true,
-    });
-    fs.writeFileSync(
-        path.join(__dirname, "./build/", i + ".html"),
-        buildPage(
-            fs.readFileSync(
-                path.join(__dirname, "./pages/", i + ".page"),
-                "utf-8"
-            ),
-            path.dirname(path.join(__dirname, "./build/", i + ".html"))
-        )
-    );
-}
+exports.build = build;

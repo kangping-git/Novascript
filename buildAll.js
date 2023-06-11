@@ -1,6 +1,26 @@
 const path = require("path");
 const fs = require("fs");
-const chokidar = require("chokidar");
+const showFiles = (dirpath, callback) => {
+    fs.readdir(dirpath, { withFileTypes: true }, (err, dirents) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+
+        for (const dirent of dirents) {
+            const fp = path.join(dirpath, dirent.name);
+            if (dirent.isDirectory()) {
+                showFiles(fp, callback);
+            } else {
+                callback(fp);
+            }
+        }
+    });
+};
+
+showFiles(path.join(__dirname, "./pages/"), (file) => {
+    build(file);
+});
 
 function build(filePath) {
     try {
@@ -37,19 +57,3 @@ function build(filePath) {
         console.log("build error");
     }
 }
-const watcher = chokidar.watch(path.join(__dirname, "/pages/"), {
-    persistent: true,
-    ignoreInitial: true,
-});
-
-watcher.on("all", (event, filePath) => {
-    if (builds) {
-        build(filePath);
-    }
-});
-
-watcher.on("error", (error) => {
-    console.error("Error occurred:", error);
-});
-
-let builds = true;

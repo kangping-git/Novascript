@@ -1,9 +1,3 @@
-# NovaScriptドキュメントへようこそ
-
-@SetTitle Novascript Docs
-
-'''
-(チュートリアル)[%relative tutorials/index.html%]
-'''
-
-みんなが大好きなNovascriptは変な日本人の中でも有名ではないKangpingが製作したプログラミング言語です。まだ何もできていませんが許してください♡
+@SetTitle Home
+# {as} a
+@(TestLink)[#as]#(%resource ./sun.svg%)[sun]<200,200>
