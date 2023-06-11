@@ -9,7 +9,7 @@ type errorMessage = {
         | "parserError$NoSpliter"]: string;
 };
 
-const version: string = "2023.06.07.17.44-snapshot";
+const version: string = "2023.06.11.19.49-snapshot";
 const errorMessages: errorMessage = {
     commandError$UnknounCommand: 
         "コマンドエラー:知らないコマンド「%s」です",

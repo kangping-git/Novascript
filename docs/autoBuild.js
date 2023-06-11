@@ -1,22 +1,41 @@
-const fs = require("fs");
 const path = require("path");
-const childProcess = require("child_process");
+const fs = require("fs");
 const chokidar = require("chokidar");
 
-function build() {
-    builds = false;
-    childProcess.exec(
-        "node " + path.join(__dirname, "./build.js"),
-        (error, stdout, stderr) => {
-            if (stderr) {
-                console.log("buildFailed");
-                console.error(stderr.toString());
-            } else {
-                console.log("buildSuccess!");
+function build(filePath) {
+    try {
+        const r = require("./build");
+        fs.mkdirSync(
+            path.dirname(
+                path.join(
+                    __dirname,
+                    "./build/",
+                    path.relative(
+                        path.join(__dirname, "./pages/"),
+                        filePath.split(".").slice(0, -1).join(".")
+                    )
+                )
+            ),
+            {
+                recursive: true,
             }
-            builds = true;
-        }
-    );
+        );
+        fs.writeFileSync(
+            path.join(
+                __dirname,
+                "./build/",
+                path.relative(
+                    path.join(__dirname, "./pages/"),
+                    filePath.split(".").slice(0, -1).join(".") + ".html"
+                )
+            ),
+            r.build(fs.readFileSync(filePath, "utf-8"), filePath)
+        );
+        console.log("build success!!");
+    } catch (e) {
+        console.log(e);
+        console.log("build error");
+    }
 }
 const watcher = chokidar.watch(path.join(__dirname, "/pages/"), {
     persistent: true,
@@ -25,7 +44,7 @@ const watcher = chokidar.watch(path.join(__dirname, "/pages/"), {
 
 watcher.on("all", (event, filePath) => {
     if (builds) {
-        build();
+        build(filePath);
     }
 });
 
@@ -34,5 +53,3 @@ watcher.on("error", (error) => {
 });
 
 let builds = true;
-
-build();

@@ -6,3 +6,5 @@ console.log("git commit");
 childprocess.execSync('git commit -m "' + data.version + '"');
 console.log("git push");
 childprocess.execSync("git push -u origin main");
+
+childprocess.execSync("node ./docs/push.js");
