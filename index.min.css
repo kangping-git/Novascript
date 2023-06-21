@@ -1,0 +1,190 @@
+@media (prefers-color-scheme: dark) {
+    main {
+        background-color: rgb(41, 41, 41);
+        color: white;
+    }
+    main a {
+        color: white;
+    }
+}
+
+html,
+body {
+    margin: 0px;
+    height: 100%;
+}
+.loaded {
+    transition: all 0.5s;
+}
+main.lightTheme {
+    background-color: white;
+    color: black;
+}
+main.lightTheme a {
+    color: black;
+}
+main.darkTheme {
+    background-color: rgb(41, 41, 41);
+    color: white;
+}
+main.darkTheme a {
+    color: white;
+}
+header {
+    position: fixed;
+    width: 100%;
+    background-color: rgb(12, 12, 12);
+    top: 0px;
+    left: 0px;
+    height: 35px;
+    text-align: center;
+    font-size: 15pt;
+}
+header a {
+    text-decoration: none;
+    color: white !important;
+    margin-right: 20px;
+}
+header .head_left {
+    position: absolute;
+    left: 0px;
+    text-align: left;
+    height: 35px;
+    padding-left: 10px;
+}
+header .head_right {
+    padding-right: 10px;
+    position: absolute;
+    right: 0px;
+    text-align: right;
+    height: 35px;
+}
+header input[type="checkbox"] {
+    display: none;
+}
+.darkThemeButton {
+    width: 25px;
+    height: 25px;
+    border-radius: 5px;
+    border: 1px solid white;
+    right: 5px;
+}
+
+main {
+    padding: 35px;
+    min-height: calc(100vh - 70px);
+}
+pre {
+    border-radius: 5px;
+    box-shadow: 10px 5px 10px dimgray;
+    padding: 10px;
+    background-color: rgb(27, 27, 27);
+    counter-reset: line-number;
+}
+.loaded pre {
+    transition: background-color 0.5s;
+}
+.lightTheme pre {
+    background-color: rgb(231, 231, 231);
+}
+pre .line::before {
+    display: inline-block;
+    content: counter(line-number);
+    color: rgb(121, 121, 121);
+    counter-increment: line-number;
+    padding-right: 5px;
+    margin-right: 5px;
+    width: 20px;
+    text-align: right;
+    border-right: solid 1px rgb(121, 121, 121);
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 20px;
+}
+ul {
+    margin: 0;
+}
+
+.block {
+    background-color: rgb(10, 10, 10);
+    padding: 10px;
+    border-radius: 10px;
+}
+.loaded .block {
+    transition: background-color 0.5s;
+}
+.lightTheme .block {
+    background-color: rgb(221, 221, 221);
+}
+.canHideCheck {
+    display: none;
+}
+.canHideCheck + label {
+    cursor: pointer;
+}
+.canHideCheck + label::before {
+    content: "▶";
+    display: inline-block;
+}
+.canHideCheck:checked + label::before {
+    content: "▼";
+}
+
+.canHideCheck + label + .block {
+    display: none;
+}
+.canHideCheck:checked + label + .block {
+    display: block;
+}
+
+pre .var {
+    color: #9cdcfe;
+}
+pre .func {
+    color: #dcdcaa;
+}
+pre .string {
+    color: #ce9178;
+}
+pre .def {
+    color: #569cd6;
+}
+pre .type {
+    color: #4ec9b0;
+}
+pre .number {
+    color: #b5cea8;
+}
+pre .comment {
+    color: #6a9955;
+}
+
+.lightTheme pre .var {
+    color: #000000;
+}
+.lightTheme pre .func {
+    color: #000000;
+}
+.lightTheme pre .string {
+    color: #a31515;
+}
+.lightTheme pre .def {
+    color: #0000ff;
+}
+.lightTheme pre .type {
+    color: #000000;
+}
+.lightTheme pre .number {
+    color: #098658;
+}
+.lightTheme pre .comment {
+    color: #008000;
+}
+.loaded pre span {
+    transition: color 0.5s;
+}
