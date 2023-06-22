@@ -224,7 +224,7 @@ function buildPage(page, FilePath) {
         .map((val, index) => {
             if (index % 2 == 1) {
                 return path.relative(
-                    path.join(path.dirname(FilePath), "../build/"),
+                    path.dirname(FilePath).replace("pages", "build"),
                     path.join(__dirname, "./build/", val.slice(10, -1))
                 );
             }
