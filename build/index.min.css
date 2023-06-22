@@ -16,18 +16,18 @@ body {
 .loaded {
     transition: all 0.5s;
 }
-main.lightmode {
+main.lightTheme {
     background-color: white;
     color: black;
 }
-main.lightmode a {
+main.lightTheme a {
     color: black;
 }
-main.darkmode {
+main.darkTheme {
     background-color: rgb(41, 41, 41);
     color: white;
 }
-main.darkmode a {
+main.darkTheme a {
     color: white;
 }
 header {
@@ -62,7 +62,7 @@ header .head_right {
 header input[type="checkbox"] {
     display: none;
 }
-.darkmodeButton {
+.darkThemeButton {
     width: 25px;
     height: 25px;
     border-radius: 5px;
@@ -79,10 +79,12 @@ pre {
     box-shadow: 10px 5px 10px dimgray;
     padding: 10px;
     background-color: rgb(27, 27, 27);
-    transition: background-color 0.5s;
     counter-reset: line-number;
 }
-.lightmode pre {
+.loaded pre {
+    transition: background-color 0.5s;
+}
+.lightTheme pre {
     background-color: rgb(231, 231, 231);
 }
 pre .line::before {
@@ -106,4 +108,83 @@ h6 {
 }
 ul {
     margin: 0;
+}
+
+.block {
+    background-color: rgb(10, 10, 10);
+    padding: 10px;
+    border-radius: 10px;
+}
+.loaded .block {
+    transition: background-color 0.5s;
+}
+.lightTheme .block {
+    background-color: rgb(221, 221, 221);
+}
+.canHideCheck {
+    display: none;
+}
+.canHideCheck + label {
+    cursor: pointer;
+}
+.canHideCheck + label::before {
+    content: "▶";
+    display: inline-block;
+}
+.canHideCheck:checked + label::before {
+    content: "▼";
+}
+
+.canHideCheck + label + .block {
+    display: none;
+}
+.canHideCheck:checked + label + .block {
+    display: block;
+}
+
+pre .var {
+    color: #9cdcfe;
+}
+pre .func {
+    color: #dcdcaa;
+}
+pre .string {
+    color: #ce9178;
+}
+pre .def {
+    color: #569cd6;
+}
+pre .type {
+    color: #4ec9b0;
+}
+pre .number {
+    color: #b5cea8;
+}
+pre .comment {
+    color: #6a9955;
+}
+
+.lightTheme pre .var {
+    color: #000000;
+}
+.lightTheme pre .func {
+    color: #000000;
+}
+.lightTheme pre .string {
+    color: #a31515;
+}
+.lightTheme pre .def {
+    color: #0000ff;
+}
+.lightTheme pre .type {
+    color: #000000;
+}
+.lightTheme pre .number {
+    color: #098658;
+}
+.lightTheme pre .comment {
+    color: #008000;
+}
+.loaded pre span {
+    transition: color 0.5s;
 }

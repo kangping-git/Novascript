@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const codeSplitter = require("../bin/runner").codeSplitter;
 let pageConfig = fs.readFileSync(path.join(__dirname, "./page.html"), "utf8");
 
 function calculateMD5(input) {
@@ -27,6 +28,7 @@ function buildPage(page, FilePath) {
     let title = "";
     let codeBlock = false;
     let list = false;
+    let hiddenBlockID = 0;
     for (let i = 0; i < splitPage.length; ++i) {
         let line = splitPage[i].trim();
         let command = line.split(" ")[0];
@@ -42,23 +44,141 @@ function buildPage(page, FilePath) {
             continue;
         }
         if (codeBlock) {
-            r += `<div class="line">${splitPage[i]}</div>`;
+            /**
+             *
+             * @param {Number} i
+             * @param {Array} L
+             * @returns
+             */
+            function getNext(i, L) {
+                let ind = L.slice(i + 1).findIndex(
+                    (value) => value != "" && value != " "
+                );
+                if (ind == -1) {
+                    return "";
+                }
+                return L[ind + i + 1];
+            }
+            let l = "";
+            let L = codeSplitter(splitPage[i]);
+            for (let i = 0; i < L.length; ++i) {
+                let c = L[i];
+                if (c == "") {
+                    continue;
+                }
+                if (c.match(/^[a-zA-Z_]\w*$/)) {
+                    if (getNext(i, L) == "(") {
+                        l += `<span class="func">${c}</span>`;
+                        continue;
+                    }
+                    l += `<span class="var">${c}</span>`;
+                    continue;
+                } else if (c.match(/^\d+\.\d+$/) || c.match(/^\d+$/)) {
+                    l += `<span class="number">${c}</span>`;
+                    continue;
+                } else if (c.match(/^"[^"]*"$/)) {
+                    l += `<span class="string">${c}</span>`;
+                    continue;
+                } else if (c == ":") {
+                    let next = getNext(i, L);
+                    if ("any string number".split(" ").includes(next)) {
+                        let j;
+                        for (j = 0; L[i + j] != next; ++j) {
+                            if (L[i + j] == "") {
+                                continue;
+                            }
+                            l += L[i + j];
+                        }
+                        l += `<span class="type">${next}</span>`;
+                        i = i + j + 1;
+                        continue;
+                    }
+                } else if (c.slice(0, 2) == "//") {
+                    l += `<span class="comment">${c}</span>`;
+                    continue;
+                }
+                l += c;
+            }
+            r += `<span class="line">${l}</span>`;
             continue;
         }
+        r += "\n            ";
         if (command != "-" && list) {
             r += "</ul>";
+            list = false;
         }
+        if (line.slice(0, 3) == "''s") {
+            if (args[0] == "canHide") {
+                r +=
+                    "<input type='checkbox' class='canHideCheck' id='canHide" +
+                    hiddenBlockID +
+                    "'><label for='canHide" +
+                    hiddenBlockID +
+                    "'>" +
+                    args[1] +
+                    "</label><div class='block canHide'>";
+                ++hiddenBlockID;
+            } else {
+                r += "<div class='block'>";
+            }
+            continue;
+        }
+        if (line.slice(0, 3) == "''c") {
+            r += "</div>";
+            continue;
+        }
+        let id;
         switch (command) {
             case "@SetTitle":
                 title = content;
                 break;
             case "#":
-                let id = ` id="${calculateMD5(content)}"`;
+                id = ` id="${calculateMD5(content)}"`;
                 if (args[0].match(/^{.*}$/)) {
                     id = ` id="${args[0].slice(1, -1)}"`;
                     content = args.slice(1).join(" ");
                 }
                 r += `<h1${id}>${content}</h1>`;
+                break;
+            case "##":
+                id = ` id="${calculateMD5(content)}"`;
+                if (args[0].match(/^{.*}$/)) {
+                    id = ` id="${args[0].slice(1, -1)}"`;
+                    content = args.slice(1).join(" ");
+                }
+                r += `<h2${id}>${content}</h2>`;
+                break;
+            case "###":
+                id = ` id="${calculateMD5(content)}"`;
+                if (args[0].match(/^{.*}$/)) {
+                    id = ` id="${args[0].slice(1, -1)}"`;
+                    content = args.slice(1).join(" ");
+                }
+                r += `<h3${id}>${content}</h3>`;
+                break;
+            case "####":
+                id = ` id="${calculateMD5(content)}"`;
+                if (args[0].match(/^{.*}$/)) {
+                    id = ` id="${args[0].slice(1, -1)}"`;
+                    content = args.slice(1).join(" ");
+                }
+                r += `<h4${id}>${content}</h4>`;
+                break;
+            case "#####":
+                id = ` id="${calculateMD5(content)}"`;
+                if (args[0].match(/^{.*}$/)) {
+                    id = ` id="${args[0].slice(1, -1)}"`;
+                    content = args.slice(1).join(" ");
+                }
+                r += `<h5${id}>${content}</h5>`;
+                break;
+            case "######":
+                id = ` id="${calculateMD5(content)}"`;
+                if (args[0].match(/^{.*}$/)) {
+                    id = ` id="${args[0].slice(1, -1)}"`;
+                    content = args.slice(1).join(" ");
+                }
+                r += `<h6${id}>${content}</h6>`;
                 break;
             case "-":
                 if (!list) {

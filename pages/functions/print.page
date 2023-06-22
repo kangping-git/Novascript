@@ -1,0 +1,15 @@
+@SetTitle print関数
+# print
+print関数は、引数をコンソールに出力することができます。
+# 引数
+```
+print(...args:any);
+```
+# サンプルコード
+```
+print("HelloWorld!") // 「HelloWorld!」と出力されます
+```
+```
+print("1+1=",1+1)
+asd
+```

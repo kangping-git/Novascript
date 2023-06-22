@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>textareaTest</title>
+        <style>
+            html,
+            body {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                outline: 0;
+                border: none;
+                color: white;
+                background-color: rgb(39, 39, 39);
+                font-family: "Courier New", Courier, monospace;
+                overflow: hidden;
+            }
+            textarea,
+            pre {
+                position: absolute;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                outline: 0;
+                border: none;
+                color: rgba(0, 0, 0, 0);
+                background-color: rgba(0, 0, 0, 0);
+                font-family: "Courier New", Courier, monospace;
+                overflow: auto;
+                resize: none;
+                white-space: nowrap;
+                max-width: 100%;
+                font-size: 13pt;
+            }
+            textarea {
+                margin-left: 100px;
+            }
+            pre {
+                color: white;
+                counter-reset: line-counter;
+            }
+            textarea::selection {
+                background-color: rgba(0, 0, 0, 0);
+            }
+            .line {
+                display: block;
+                counter-increment: line-counter;
+            }
+            .line::before {
+                content: counter(line-counter);
+                display: inline-block;
+                width: 89px;
+                text-align: right;
+                border-right: 1px rgb(77, 77, 77) solid;
+                margin-right: 5px;
+                padding-right: 5px;
+            }
+            .line.active {
+                border-top: solid 1px gray;
+                border-bottom: solid 1px gray;
+            }
+            .caret {
+                white-space: pre-wrap;
+            }
+            .caret.select {
+                background-color: white;
+                color: black;
+            }
+            .caret.selectBefore {
+                background-color: rgba(0, 195, 255, 0.432);
+                color: white;
+            }
+            .caret.var {
+                color: #9cdcfe;
+            }
+            .caret.func {
+                color: #dcdcaa;
+            }
+            .caret.str {
+                color: #ce9178;
+            }
+            .caret.def {
+                color: #569cd6;
+            }
+            .caret.type {
+                color: #4ec9b0;
+            }
+            .caret.num {
+                color: #b5cea8;
+            }
+            .caret.comment {
+                color: #6a9955;
+            }
+        </style>
+        <script>
+            window.addEventListener("load", () => {
+                const textarea = document.getElementById("input");
+                const outputPre = document.getElementById("output");
+                function caretUpdate() {
+                    caretStart = textarea.selectionStart;
+                    caretEnd = textarea.selectionEnd;
+                    document
+                        .querySelectorAll(".select, .selectBefore")
+                        .forEach((value) =>
+                            value.classList.remove("select", "selectBefore")
+                        );
+                    for (let i = caretStart; i < caretEnd; ++i) {
+                        document
+                            .getElementById("caret_" + i)
+                            .classList.add("selectBefore");
+                    }
+                    document
+                        .getElementById("caret_" + caretEnd)
+                        .classList.add("select");
+                }
+
+                function updateOutput() {
+                    if (lastInput !== textarea.value) {
+                        outputPre.innerHTML =
+                            '<span class="line">' +
+                            textarea.value
+                                .split("")
+                                .map(
+                                    (value, index) =>
+                                        `<span id="caret_${index}" class="caret">${
+                                            value != "\n" ? value : " "
+                                        }</span>${value != "\n" ? "" : "\n"}`
+                                )
+                                .join("")
+                                .replace(/\n/g, '</span><span class="line">') +
+                            `<span id="caret_${textarea.value.length}" class="caret"> </span>` +
+                            "</span>";
+                        let code = textarea.value;
+                        let $token = code.split(
+                            /(\r\n|\r|\n|\+|-|\/\/[^\n]*|\*\*|\*|\/|"[^"]*"|,|[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\.[0-9]*|[0-9]+|\(|\)|;)/
+                        );
+                        function classAdd(a, b, className) {
+                            for (let i = a; i < a + b; i++) {
+                                document
+                                    .getElementById("caret_" + i)
+                                    .classList.add(className);
+                            }
+                        }
+                        function next(ind, val) {
+                            let t = $token
+                                .slice(ind + 2)
+                                .findIndex(
+                                    (value) =>
+                                        value != "" &&
+                                        value[0] != " " &&
+                                        value != "" &&
+                                        !["\n"].includes(value)
+                                );
+                            if (t >= 0) {
+                                return $token[t + ind + 2] == val;
+                            }
+                            return false;
+                        }
+                        let ind = 0;
+                        let I = -1;
+                        for (let i of $token) {
+                            I += 1;
+                            if (!i) {
+                                continue;
+                            }
+                            if (i.match(/^[a-zA-Z_]\w*$/)) {
+                                if (["def", "class"].includes(i)) {
+                                    classAdd(ind, i.length, "def");
+                                } else if (
+                                    ["any", "string", "number"].includes(i)
+                                ) {
+                                    classAdd(ind, i.length, "type");
+                                } else if (next(I, "(")) {
+                                    classAdd(ind, i.length, "func");
+                                } else {
+                                    classAdd(ind, i.length, "var");
+                                }
+                            } else if (i.match(/^"[^"]*"$/)) {
+                                classAdd(ind, i.length, "str");
+                            } else if (i.match(/^\d+(\.\d*)?$/)) {
+                                classAdd(ind, i.length, "num");
+                            } else if (i.match(/^\/\//)) {
+                                classAdd(ind, i.length, "comment");
+                            }
+                            ind += i.length;
+                        }
+                        outputPre.scrollTop = textarea.scrollTop;
+                        outputPre.scrollLeft = textarea.scrollLeft;
+                        lastInput = textarea.value;
+                        caretUpdate();
+                    }
+                    if (
+                        caretStart !== textarea.selectionStart ||
+                        caretEnd !== textarea.selectionEnd
+                    ) {
+                        caretUpdate();
+                    }
+                    requestAnimationFrame(updateOutput);
+                }
+
+                let lastInput = null;
+                let caretStart = -1;
+                let caretEnd = -1;
+
+                textarea.addEventListener("input", () => {
+                    updateOutput();
+                });
+
+                textarea.addEventListener("scroll", () => {
+                    outputPre.scrollTop = textarea.scrollTop;
+                    outputPre.scrollLeft = textarea.scrollLeft;
+                });
+                textarea.addEventListener("focus", caretUpdate);
+                textarea.addEventListener("blur", () => {
+                    document
+                        .querySelectorAll(".select, .selectBefore, .active")
+                        .forEach((value) =>
+                            value.classList.remove(
+                                "select",
+                                "selectBefore",
+                                "active"
+                            )
+                        );
+                });
+
+                updateOutput();
+            });
+        </script>
+    </head>
+    <body>
+        <pre id="output"></pre>
+        <textarea id="input">print("Hello,World")</textarea>
+    </body>
+</html>

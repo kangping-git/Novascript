@@ -1,4 +1,7 @@
 @SetTitle Functions
 # Functions
 
-- (println)[./println.html]
+- (ビルドイン関数)[#buildInFunction]
+
+## {buildInFunction} ビルドイン関数
+- (print関数)[./print.html] - 文字列を出力する関数です
