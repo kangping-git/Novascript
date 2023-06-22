@@ -223,6 +223,7 @@ function buildPage(page, FilePath) {
         .split(/(%resource [^%]+%)/)
         .map((val, index) => {
             if (index % 2 == 1) {
+                console.log(path.dirname(FilePath));
                 return path.relative(
                     path.dirname(FilePath),
                     path.join(__dirname, "./build/", val.slice(10, -1))
