@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.codeSpliter = exports.lexer = exports.parser = exports.runner = void 0;
+exports.codeSplitter = exports.lexer = exports.parser = exports.runner = void 0;
 const fs = __importStar(require("fs"));
 const switchPlus_1 = require("./switchPlus");
 const util = __importStar(require("./util"));
@@ -52,17 +52,17 @@ function runner(filePath, debugFlg) {
     }
 }
 exports.runner = runner;
-function codeSpliter(code) {
-    let $token = code.split(/(\r\n|\r|\n|\+|-|\*\*|\*|\/|"[^"]*"|,|[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\.[0-9]+|[0-9]+|\(|\)|;)/);
+function codeSplitter(code) {
+    let $token = code.split(/(\r\n|\r|\n|\+|-|\/\/[^\n]*|\*\*|\*|\/|"[^"]*"|,|[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\.[0-9]+|[0-9]+|\(|\)|;)/);
     return $token;
 }
-exports.codeSpliter = codeSpliter;
+exports.codeSplitter = codeSplitter;
 function lexer(code, filePath) {
     function add(token) {
         tokens.push(token);
     }
     let tokens = [];
-    let $token = codeSpliter(code);
+    let $token = codeSplitter(code);
     let line = 0;
     let char = 0;
     for (let i of $token) {
@@ -138,7 +138,7 @@ function lexer(code, filePath) {
         })
             .c(",", (val) => {
             add({
-                type: "spliter",
+                type: "splitter",
                 value: i,
                 line: line,
                 char: char,
@@ -207,8 +207,8 @@ function $parser(tokens, mustNewLine = false, NoCalc = false) {
                         asts.push(p.ast);
                         _tokens = p.tokens;
                         if (_tokens.length > 0) {
-                            if (_tokens[0].type != "spliter") {
-                                error("parserError$NoSpliter");
+                            if (_tokens[0].type != "splitter") {
+                                error("parserError$NoSplitter");
                             }
                         }
                         _tokens = _tokens.slice(1);

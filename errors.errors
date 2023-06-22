@@ -1,7 +1,7 @@
 #novaVersion 2023.06.11.19.49-snapshot
 commandError:
     >> コマンドエラー
-    UnknounCommand:
+    UnknownCommand:
         >>> 知らないコマンド「%s」です
 runCommandSyntaxError:
     >> コマンド構文エラー
@@ -17,5 +17,5 @@ parserError:
         >>> 不明な構文が使用されています;%s:%s:%s;%s;%s
     NoReLine:
         >>> 改行やセミコロンが抜けています;%s:%s:%s;%s;%s
-    NoSpliter:
+    NoSplitter:
         >>> 関数内の引数でコンマが抜けています;%s:%s:%s;%s;%s

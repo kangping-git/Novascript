@@ -58,7 +58,7 @@ function main(args) {
             runner.runner($path, debugFlg);
             break;
         default:
-            util.error("commandError$UnknounCommand", args[0]);
+            util.error("commandError$UnknownCommand", args[0]);
     }
 }
 main(process.argv.slice(2));

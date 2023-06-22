@@ -12,7 +12,7 @@ interface token {
         | "parentheses"
         | "reline"
         | "number"
-        | "spliter"
+        | "splitter"
         | "calc";
     value: string;
     line: number;
@@ -68,9 +68,9 @@ function runner(filePath: string, debugFlg: boolean) {
         );
     }
 }
-function codeSpliter(code: string) {
+function codeSplitter(code: string) {
     let $token: string[] = code.split(
-        /(\r\n|\r|\n|\+|-|\*\*|\*|\/|"[^"]*"|,|[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\.[0-9]+|[0-9]+|\(|\)|;)/
+        /(\r\n|\r|\n|\+|-|\/\/[^\n]*|\*\*|\*|\/|"[^"]*"|,|[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+\.[0-9]+|[0-9]+|\(|\)|;)/
     );
     return $token;
 }
@@ -80,7 +80,7 @@ function lexer(code: string, filePath: string): token[] {
         tokens.push(token);
     }
     let tokens: token[] = [];
-    let $token: string[] = codeSpliter(code);
+    let $token: string[] = codeSplitter(code);
     let line: number = 0;
     let char: number = 0;
     for (let i of $token) {
@@ -156,7 +156,7 @@ function lexer(code: string, filePath: string): token[] {
             })
             .c(",", (val: string) => {
                 add({
-                    type: "spliter",
+                    type: "splitter",
                     value: i,
                     line: line,
                     char: char,
@@ -244,8 +244,8 @@ function $parser(
                         asts.push(p.ast);
                         _tokens = p.tokens;
                         if (_tokens.length > 0) {
-                            if (_tokens[0].type != "spliter") {
-                                error("parserError$NoSpliter");
+                            if (_tokens[0].type != "splitter") {
+                                error("parserError$NoSplitter");
                             }
                         }
                         _tokens = _tokens.slice(1);
@@ -346,4 +346,4 @@ function parser(tokens: token[], mustNewLine: boolean = true): ast[] {
     return returnAsts;
 }
 
-export { runner, parser, lexer, codeSpliter };
+export { runner, parser, lexer, codeSplitter };

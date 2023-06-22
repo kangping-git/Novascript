@@ -1,10 +1,17 @@
 # Novascript
 
+## このプログラミング言語について
+
 Novascript は日本の国産言語です。Kangping が個人で開発しています。もし、一緒に開発したいな～っていう人は、[Twitter](https://twitter.com/KangpingT)に DM していただけると嬉しいです。
 そういえば開発言語は Typescript です。
-詳細は[こちら](https://kangping-git.github.io/Novascript/build/)から
+詳細は[こちら](https://kangping-git.github.io/Novascript/)から
 
-# Licence
+## コミュニティー
+
+Slack:[こいつ](https://join.slack.com/t/kangpinghq/shared_invite/zt-1xgsesnoy-9fqCiTkZbrwmW2WwPjvMJw)
+Discord:[こいつ](https://discord.gg/nC7eJu8kh9)
+
+## License
 
 MIT License
 

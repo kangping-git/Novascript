@@ -1,6 +1,6 @@
 import * as NovaData from "./data";
 
-function error(errorID: NovaData.errorMessageKeys, ...datas: any) {
+function error(errorID: NovaData.errorMessageKeys, ...data: any) {
     let index: number = 0;
     console.error(
         NovaData.errorMessages[errorID]
@@ -8,7 +8,7 @@ function error(errorID: NovaData.errorMessageKeys, ...datas: any) {
             .map((value: string) => {
                 if (value == "%s") {
                     index += 1;
-                    return datas[index - 1];
+                    return data[index - 1];
                 }
                 return value;
             })

@@ -1,3 +1,4 @@
+const path = require("path");
 const childprocess = require("child_process");
 const data = require("./bin/data");
 console.log("git add");
@@ -7,4 +8,6 @@ childprocess.execSync('git commit -m "' + data.version + '"');
 console.log("git push");
 childprocess.execSync("git push -u origin main");
 
-childprocess.execSync("node ./docs/push.js");
+childprocess.execSync(
+    "cd " + path.join(__dirname, "./docs") + " & node ./docs/push.js"
+);

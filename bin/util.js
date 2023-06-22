@@ -25,14 +25,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.error = void 0;
 const NovaData = __importStar(require("./data"));
-function error(errorID, ...datas) {
+function error(errorID, ...data) {
     let index = 0;
     console.error(NovaData.errorMessages[errorID]
         .split(/(%s)/)
         .map((value) => {
         if (value == "%s") {
             index += 1;
-            return datas[index - 1];
+            return data[index - 1];
         }
         return value;
     })

@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const chokidar = require("chokidar");
+const child_process = require("child_process");
 
 function build(filePath) {
     try {
@@ -43,7 +44,7 @@ const watcher = chokidar.watch(path.join(__dirname, "/pages/"), {
 });
 
 watcher.on("all", (event, filePath) => {
-    if (builds) {
+    if (builds && event == "change") {
         build(filePath);
     }
 });
@@ -53,3 +54,5 @@ watcher.on("error", (error) => {
 });
 
 let builds = true;
+child_process.execSync("node " + path.join(__dirname, "./buildAll.js"));
+console.log("build success!!");
