@@ -9,5 +9,5 @@ console.log("git push");
 childprocess.execSync("git push -u origin main");
 
 childprocess.execSync(
-    "cd " + path.join(__dirname, "./docs") + " & node ./docs/push.js"
+    "cd " + path.join(__dirname, "./docs/") + " & node ./push.js"
 );
